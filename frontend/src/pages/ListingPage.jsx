@@ -48,7 +48,8 @@ export default function ListingPage(){
           return
         }
         const token = await currentUser.getIdToken()
-        const res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/api/expenses`, {
+        // const res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/api/expenses`, {
+        const res = await fetch(`/api/expenses`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -89,7 +90,8 @@ export default function ListingPage(){
         return
       }
       const token = await currentUser.getIdToken()
-      const res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/api/expenses/${id}`, {
+      // const res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/api/expenses/${id}`, {
+      const res = await fetch(`/api/expenses/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -119,7 +121,8 @@ export default function ListingPage(){
       if(!currentUser){ navigate('/login'); return }
       const token = await currentUser.getIdToken()
       // delete in parallel
-      const base = `${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/api/expenses/`
+      // const base = `${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/api/expenses/`
+      const base = `/api/expenses/`
       const results = await Promise.all(selectedIds.map(id => fetch(base + id, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } }).then(r => ({id, ok: r.ok, status: r.status})).catch(e => ({id, ok:false}))))
       // if any unauthorized, redirect
       if(results.some(r => r.status === 401)) { navigate('/login'); return }
@@ -152,13 +155,15 @@ export default function ListingPage(){
       }
       let res
       if(editId){
-        res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/api/expenses/${editId}`, {
+        // res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/api/expenses/${editId}`, {
+        res = await fetch(`/api/expenses/${editId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload)
         })
       }else{
-        res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/api/expenses`, {
+        // res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/api/expenses`, {
+        res = await fetch(`/api/expenses`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload)

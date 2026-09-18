@@ -9,6 +9,7 @@ services:
       - firebase-service-account
     networks:
       - backend-network
+      - frontend-network
     environment:
       - MONGODB_URI=${MONGODB_URI}
       - MONGODB_DB_NAME=${MONGODB_DB_NAME}
@@ -26,8 +27,29 @@ services:
       - backend-network
     restart: unless-stopped  
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID}
+        VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET}
+        VITE_FIREBASE_MESSAGING_SENDER_ID: ${VITE_FIREBASE_MESSAGING_SENDER_ID}
+        VITE_FIREBASE_APP_ID: ${VITE_FIREBASE_APP_ID}
+    ports:
+      - 80:80
+    networks:
+      - frontend-network
+    restart: unless-stopped
+    depends_on:
+      - backend
+
 networks:
   backend-network:
+    driver: bridge
+  frontend-network:
     driver: bridge
 
 volumes:

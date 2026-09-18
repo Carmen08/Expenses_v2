@@ -1,6 +1,7 @@
 FROM node:24-alpine
 
-ENV GOOGLE_APPLICATION_CREDENTIALS=/app/secrets/serviceAccountKey.json
+# ENV GOOGLE_APPLICATION_CREDENTIALS=/app/secrets/serviceAccountKey.json
+ENV GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/firebase-service-account
 
 WORKDIR /app
 

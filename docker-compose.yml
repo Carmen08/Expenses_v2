@@ -1,0 +1,40 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - 4000:4000
+    secrets:
+      - firebase-service-account
+    networks:
+      - backend-network
+    environment:
+      - MONGODB_URI=${MONGODB_URI}
+      - MONGODB_DB_NAME=${MONGODB_DB_NAME}
+    restart: unless-stopped
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:7.0
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - backend-network
+    restart: unless-stopped  
+
+networks:
+  backend-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+
+secrets:
+  firebase-service-account:
+    file: ./secrets/serviceAccountKey.json
+
+    

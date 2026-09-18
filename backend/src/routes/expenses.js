@@ -4,10 +4,6 @@ const verifyToken = require('../middleware/verifyToken')
 const { getCollection } = require('../mongo')
 const { ObjectId } = require('mongodb')
 
-router.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' })
-})
-
 // Protected route example — fetch listings from MongoDB
 router.get('/', verifyToken, async (req, res) => {
   try{

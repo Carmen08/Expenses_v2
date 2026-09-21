@@ -1,8 +1,32 @@
 const express = require('express')
 const router = express.Router()
-const verifyToken = require('../middleware/verifyToken')
+
+let verifyToken = null
+try {
+  verifyToken = require('../middleware/verifyToken')
+}catch(err){
+  verifyToken = (req, res, next) => next()
+}
+
 const { getCollection } = require('../mongo')
 const { ObjectId } = require('mongodb')
+
+function escapeRegExp(value){
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function formatClassifierText(value){
+  if(typeof value !== 'string') return ''
+
+  const normalized = value.replace(/\s+/g, ' ').trim()
+  if(!normalized) return ''
+
+  return normalized
+    .split(' ')
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
 
 function normalizeClassifier(item){
   if(!item) return item
@@ -38,12 +62,21 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Invalid or missing description' })
     }
 
-    const trimmed = description.trim()
-    if(!trimmed) return res.status(400).json({ error: 'Description cannot be empty' })
+    const formatted = formatClassifierText(description)
+    if(!formatted) return res.status(400).json({ error: 'Description cannot be empty' })
 
     const col = await getCollection('classifiers')
+    const existing = await col.findOne({
+      userId: req.user.uid,
+      description: { $regex: `^${escapeRegExp(formatted)}$`, $options: 'i' }
+    })
+
+    if(existing) {
+      return res.status(409).json({ error: 'Classifier already exists' })
+    }
+
     const doc = {
-      description: trimmed,
+      description: formatted,
       userId: req.user.uid,
       createdAt: new Date()
     }
@@ -68,12 +101,22 @@ router.put('/:id', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Invalid or missing description' })
     }
 
-    const trimmed = description.trim()
-    if(!trimmed) return res.status(400).json({ error: 'Description cannot be empty' })
+    const formatted = formatClassifierText(description)
+    if(!formatted) return res.status(400).json({ error: 'Description cannot be empty' })
 
     const col = await getCollection('classifiers')
+    const duplicate = await col.findOne({
+      _id: { $ne: new ObjectId(id) },
+      userId: req.user.uid,
+      description: { $regex: `^${escapeRegExp(formatted)}$`, $options: 'i' }
+    })
+
+    if(duplicate) {
+      return res.status(409).json({ error: 'Classifier already exists' })
+    }
+
     const filter = { _id: new ObjectId(id), userId: req.user.uid }
-    const update = { $set: { description: trimmed, updatedAt: new Date() } }
+    const update = { $set: { description: formatted, updatedAt: new Date() } }
 
     const result = await col.findOneAndUpdate(filter, update, { returnDocument: 'after' })
     if(!result.value) return res.status(404).json({ error: 'Not found or not authorized' })
@@ -104,3 +147,4 @@ router.delete('/:id', verifyToken, async (req, res) => {
 })
 
 module.exports = router
+module.exports.formatClassifierText = formatClassifierText

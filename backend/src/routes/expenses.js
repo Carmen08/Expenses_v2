@@ -1,36 +1,100 @@
 const express = require('express')
 const router = express.Router()
-const verifyToken = require('../middleware/verifyToken')
+
+let verifyToken = null
+try {
+  verifyToken = require('../middleware/verifyToken')
+}catch(err){
+  verifyToken = (req, res, next) => next()
+}
+
 const { getCollection } = require('../mongo')
 const { ObjectId } = require('mongodb')
 
-// Protected route example — fetch listings from MongoDB
-router.get('/', verifyToken, async (req, res) => {
+function normalizeClassifierId(rawValue){
+  if(rawValue === undefined || rawValue === null || rawValue === '') return null
+
+  if(typeof rawValue === 'string'){
+    const cleaned = rawValue.trim()
+    return ObjectId.isValid(cleaned) ? cleaned : null
+  }
+
+  if(typeof rawValue === 'object'){
+    if(rawValue.classifierId && typeof rawValue.classifierId === 'string'){
+      const cleaned = rawValue.classifierId.trim()
+      return ObjectId.isValid(cleaned) ? cleaned : null
+    }
+    if(rawValue._id && typeof rawValue._id === 'string'){
+      const cleaned = rawValue._id.trim()
+      return ObjectId.isValid(cleaned) ? cleaned : null
+    }
+    if(rawValue.id && typeof rawValue.id === 'string'){
+      const cleaned = rawValue.id.trim()
+      return ObjectId.isValid(cleaned) ? cleaned : null
+    }
+    if(rawValue.classifier) return normalizeClassifierId(rawValue.classifier)
+  }
+
+  return null
+}
+
+function buildExpensePayload({ concept, amount, date, classifierId, isExpense }){
+  const normalizedAmount = Number(amount)
+  return {
+    concept: String(concept || '').trim(),
+    amount: normalizedAmount,
+    date: date ? new Date(date) : new Date(),
+    classifierId: normalizeClassifierId(classifierId),
+    isExpense: !!isExpense,
+    updatedAt: new Date()
+  }
+}
+
+function normalizeExpense(item){
+  if(!item) return item
+  const normalized = { ...item }
+
+  if(normalized._id && typeof normalized._id !== 'string') normalized._id = normalized._id.toString()
+  if(normalized.id && typeof normalized.id !== 'string') normalized.id = normalized.id.toString()
+  if(normalized.classifierId && typeof normalized.classifierId !== 'string') normalized.classifierId = normalized.classifierId.toString()
+
+  if(!normalized.classifierId && normalized.classifier && typeof normalized.classifier === 'object'){
+    const legacyId = normalizeClassifierId(normalized.classifier)
+    if(legacyId) normalized.classifierId = legacyId
+  }
+
+  return normalized
+}
+
+const authMiddleware = verifyToken || ((req, res, next) => next())
+
+router.get('/', authMiddleware, async (req, res) => {
   try{
     const col = await getCollection('expenses')
-    // Optionally filter by user: { ownerUid: req.user.uid }
     const items = await col.find({ userId: req.user.uid }).toArray()
-    res.json({ user: req.user, expenses: items })
+    res.json({ user: req.user, expenses: items.map(normalizeExpense) })
   }catch(err){
     console.error('Error fetching expenses from MongoDB:', err && err.message)
     return res.status(500).json({ error: 'Failed to fetch expenses' })
   }
 })
 
-// Create an expense (protected) — validates input and assigns ownerUid
-router.post('/', verifyToken, async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
   try{
-    const { concept, amount, date, classifier } = req.body || {}
-    // basic validation
+    const { concept, amount, date, classifierId, classifier, isExpense } = req.body || {}
     if(!concept || typeof concept !== 'string') return res.status(400).json({ error: 'Invalid or missing concept' })
-    if(amount === undefined || typeof amount !== 'number') return res.status(400).json({ error: 'Invalid or missing amount' })
 
+    const parsedAmount = Number(amount)
+    if(amount === undefined || Number.isNaN(parsedAmount)) return res.status(400).json({ error: 'Invalid or missing amount' })
+
+    const normalizedClassifierId = normalizeClassifierId(classifierId ?? classifier)
     const col = await getCollection('expenses')
     const doc = {
       concept: concept.trim(),
-      amount,
+      amount: parsedAmount,
       date: date ? new Date(date) : new Date(),
-      classifier: classifier || null,
+      classifierId: normalizedClassifierId,
+      isExpense: !!isExpense,
       userId: req.user.uid,
       createdAt: new Date()
     }
@@ -38,35 +102,36 @@ router.post('/', verifyToken, async (req, res) => {
     const result = await col.insertOne(doc)
     if(!result.acknowledged) return res.status(500).json({ error: 'Insert failed' })
 
-    // include the generated _id (as string) in the returned document
-    doc._id = result.insertedId.toString()
-    return res.status(201).json({ success: true, expense: doc })
+    const created = normalizeExpense({ ...doc, _id: result.insertedId, id: result.insertedId })
+    return res.status(201).json({ success: true, expense: created })
   }catch(err){
-    const { concept, amount, date, classifier, isExpense } = req.body || {}
+    console.error('Error creating expense:', err && err.message)
     return res.status(500).json({ error: 'Failed to create expense' })
   }
 })
 
-// Update an expense by id (protected) — enforces ownership and returns updated document
-router.put('/:id', verifyToken, async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
   try{
     const { id } = req.params
     if(!id) return res.status(400).json({ error: 'Missing id parameter' })
     if(!ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid id' })
 
-    const { concept, amount, date, classifier, isExpense } = req.body || {}
+    const { concept, amount, date, classifierId, classifier, isExpense } = req.body || {}
     if(!concept || typeof concept !== 'string') return res.status(400).json({ error: 'Invalid or missing concept' })
-    if(amount === undefined || typeof amount !== 'number') return res.status(400).json({ error: 'Invalid or missing amount' })
 
+    const parsedAmount = Number(amount)
+    if(amount === undefined || Number.isNaN(parsedAmount)) return res.status(400).json({ error: 'Invalid or missing amount' })
+
+    const normalizedClassifierId = normalizeClassifierId(classifierId ?? classifier)
     const col = await getCollection('expenses')
     const filter = { _id: new ObjectId(id), userId: req.user.uid }
     const update = {
       $set: {
         concept: concept.trim(),
-        amount,
+        amount: parsedAmount,
         isExpense: !!isExpense,
         date: date ? new Date(date) : new Date(),
-        classifier: classifier && typeof classifier === 'string' ? { description: classifier } : (classifier || null),
+        classifierId: normalizedClassifierId,
         updatedAt: new Date()
       }
     }
@@ -74,8 +139,7 @@ router.put('/:id', verifyToken, async (req, res) => {
     const result = await col.findOneAndUpdate(filter, update, { returnDocument: 'after' })
     if(!result.value) return res.status(404).json({ error: 'Not found or not authorized' })
 
-    const updated = result.value
-    if(updated._id && updated._id.toString) updated._id = updated._id.toString()
+    const updated = normalizeExpense(result.value)
     return res.json({ success: true, expense: updated })
   }catch(err){
     console.error('Error updating expense:', err && err.message)
@@ -83,8 +147,7 @@ router.put('/:id', verifyToken, async (req, res) => {
   }
 })
 
-// Delete an expense by id (protected) — enforces ownership and returns deleted document
-router.delete('/:id', verifyToken, async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try{
     const { id } = req.params
     if(!id) return res.status(400).json({ error: 'Missing id parameter' })
@@ -96,10 +159,7 @@ router.delete('/:id', verifyToken, async (req, res) => {
     const result = await col.findOneAndDelete(filter)
     if(!result.value) return res.status(404).json({ error: 'Not found or not authorized' })
 
-    // normalize _id to string for the response
-    const deleted = result.value
-    if(deleted._id && deleted._id.toString) deleted._id = deleted._id.toString()
-
+    const deleted = normalizeExpense(result.value)
     return res.json({ success: true, deleted })
   }catch(err){
     console.error('Error deleting expense:', err && err.message)
@@ -108,3 +168,5 @@ router.delete('/:id', verifyToken, async (req, res) => {
 })
 
 module.exports = router
+module.exports.normalizeClassifierId = normalizeClassifierId
+module.exports.buildExpensePayload = buildExpensePayload

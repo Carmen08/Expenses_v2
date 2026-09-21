@@ -2,6 +2,19 @@ import React, { useEffect, useState } from 'react'
 import auth from '../firebase'
 import { useNavigate } from 'react-router-dom'
 
+function formatClassifierText(value){
+  if(typeof value !== 'string') return ''
+
+  const normalized = value.replace(/\s+/g, ' ').trim()
+  if(!normalized) return ''
+
+  return normalized
+    .split(' ')
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
 export default function ClassifiersPage(){
   const navigate = useNavigate()
   const [items, setItems] = useState([])
@@ -47,15 +60,15 @@ export default function ClassifiersPage(){
 
   async function handleSubmit(e){
     e.preventDefault()
-    const trimmed = description.trim()
-    if(!trimmed) return alert('Description is required')
+    const formatted = formatClassifierText(description)
+    if(!formatted) return alert('Description is required')
 
     try{
       const currentUser = auth.currentUser
       if(!currentUser){ navigate('/login'); return }
       const token = await currentUser.getIdToken()
 
-      const payload = { description: trimmed }
+      const payload = { description: formatted }
       let res
       if(editId){
         res = await fetch(`/api/classifiers/${editId}`, {
@@ -79,7 +92,7 @@ export default function ClassifiersPage(){
       }
 
       const data = await res.json()
-      const item = (editId ? data.classifier : data.classifier)
+      const item = data.classifier
 
       setItems(prev => {
         const next = editId
@@ -175,7 +188,11 @@ export default function ClassifiersPage(){
             <h3>{editId ? 'Edit classifier' : 'Create classifier'}</h3>
             <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 8 }}>
               <label>Description
-                <input value={description} onChange={e => setDescription(e.target.value)} />
+                <input
+                  value={description}
+                  //onChange={e => setDescription(formatClassifierText(e.target.value))}
+                  onChange={e => setDescription(e.target.value)}
+                />
               </label>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
                 <button type="button" className="cancel-btn" onClick={handleCancel}>Cancel</button>

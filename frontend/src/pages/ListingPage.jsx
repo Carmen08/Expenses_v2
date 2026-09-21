@@ -264,10 +264,10 @@ export default function ListingPage(){
 
   return (
     <div style={{padding:24}}>
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-        <h1>Expenses</h1>
-        <div style={{fontSize:13,color:'#005bee'}} className="signout-link" onClick={handleSignOut}>Sign out</div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between', marginBottom: 12}}>
+        <h1 style={{margin:0}}>Expenses</h1>
       </div>
+
       <div className="filters" style={{marginTop:12,marginBottom:12}}>
         <label>From <input type="date" value={filterStartInput} onChange={e=>setFilterStartInput(e.target.value)} /></label>
         <label>To <input type="date" value={filterEndInput} onChange={e=>setFilterEndInput(e.target.value)} /></label>

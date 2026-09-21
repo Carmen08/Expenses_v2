@@ -286,10 +286,10 @@ export default function ListingPage(){
           <button type="button" onClick={() => { setFilterStart(monthRange.start); setFilterEnd(monthRange.end); setFilterText(''); setFilterStartInput(monthRange.start); setFilterEndInput(monthRange.end); setFilterTextInput('') }}>Reset</button>
         </div>
         <div className="totals" style={{marginLeft:'auto',display:'flex',gap:12,alignItems:'center'}}>
-          <div className="total-income">Income: {totals.income.toFixed(2)} €</div>
-          <div className="total-expense">Expense: {totals.expense.toFixed(2)} €</div>
-          <div style={{display:'flex',gap:8,alignItems:'center'}}>
-            <button title="Add expense" onClick={openCreate} style={{background:'transparent',border:'none',cursor:'pointer'}}>
+          <div className="total-income" style={{display:'flex',alignItems:'center',lineHeight:1}}>Income: {totals.income.toFixed(2)} €</div>
+          <div className="total-expense" style={{display:'flex',alignItems:'center',lineHeight:1}}>Expense: {totals.expense.toFixed(2)} €</div>
+          <div style={{display:'flex',gap:8,alignItems:'center',lineHeight:1}}>
+            <button title="Add expense" onClick={openCreate} style={{background:'transparent',border:'none',cursor:'pointer',padding:0,margin:0,width:'auto',height:'18px',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'none'}}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke="#005bee" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
             <button title="Edit selected" disabled={selectedIds.length !== 1} onClick={() => {
@@ -297,10 +297,10 @@ export default function ListingPage(){
               const id = selectedIds[0]
               const it = items.find(x => (x._id||x.id) === id)
               if(it) openEdit(it)
-            }} style={{background:'transparent',border:'none',cursor: selectedIds.length===1 ? 'pointer' : 'not-allowed'}}>
+            }} style={{background:'transparent',border:'none',cursor: selectedIds.length===1 ? 'pointer' : 'not-allowed',padding:0,margin:0,width:'auto',height:'18px',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'none'}}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 21v-3.75L14.81 5.44a2 2 0 012.83 0l1.92 1.92a2 2 0 010 2.83L7.75 21H3z" stroke="#333" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
-            <button title="Delete selected" disabled={selectedIds.length===0} onClick={handleBulkDelete} style={{background:'transparent',border:'none',cursor: selectedIds.length>0 ? 'pointer' : 'not-allowed'}}>
+            <button title="Delete selected" disabled={selectedIds.length===0} onClick={handleBulkDelete} style={{background:'transparent',border:'none',cursor: selectedIds.length>0 ? 'pointer' : 'not-allowed',padding:0,margin:0,width:'auto',height:'18px',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'none'}}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M8 6v12a2 2 0 002 2h4a2 2 0 002-2V6M10 6V4a2 2 0 012-2h0a2 2 0 012 2v2" stroke="#b00" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
           </div>
@@ -366,11 +366,15 @@ export default function ListingPage(){
             </thead>
             <tbody id="table-body">
               {filteredItems.map(it => (
-                <tr key={it._id || it.id} onClick={()=>toggleRowSelection(it)}>
-                  <td>
+                <tr key={it._id || it.id}>
+                  <td onClick={(e) => {
+                    e.stopPropagation()
+                    toggleRowSelection(it)
+                  }}>
                     <input
                       type="checkbox"
                       checked={selectedIds.includes(it._id || it.id)}
+                      onClick={(e) => e.stopPropagation()}
                       onChange={(e) => {
                         e.stopPropagation()
                         const id = it._id || it.id

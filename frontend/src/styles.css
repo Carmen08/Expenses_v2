@@ -41,7 +41,17 @@ button{
     background:#2563eb;
     color:#fff;
     font-weight:600;
-    margin-top:12px
+    margin-top:12px;
+    cursor:pointer;
+    transition:box-shadow 0.16s ease, transform 0.08s ease, filter 0.08s ease, background-color 0.12s ease
+}
+button:hover{
+    box-shadow:0 6px 16px rgba(37, 99, 235, 0.3)
+}
+button:active{
+    background:#1d4ed8;
+    filter:brightness(0.96);
+    transform:translateY(1px)
 }
 .error{
     background:#fee2e2;
@@ -64,10 +74,6 @@ button{
     padding:8px 12px; 
     border:1px solid #e5e7eb; 
     text-align:left; 
-
-    &.grid-cell-delete{
-        text-align:center;
-    }
 }
 .table-reset thead 
 { 
@@ -78,44 +84,101 @@ button{
 { 
     background:#fbfbfb 
 }
-.table-reset button 
-{ 
-    padding:6px 8px; 
-    border-radius:6px; 
-    border:none; 
-    cursor:pointer; 
-    width:auto; 
-    margin:0 
-}
-.table-reset .delete-btn 
-{ 
-    background:#ef4444; 
-    color:#fff;
-}
-
-/* Floating action button */
-.fab{position:fixed;right:20px;bottom:20px;width:56px;height:56px;border-radius:50%;background:#2563eb;color:#fff;border:none;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,0.12);cursor:pointer}
-.fab svg{display:block}
 
 /* Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:60}
-.modal{background:#fff;padding:16px;border-radius:8px;min-width:320px;box-shadow:0 10px 30px rgba(0,0,0,0.2)}
-.modal h3{margin:0 0 8px 0}
-.modal label{display:block;font-size:13px;margin-bottom:6px}
-.modal label{display:flex;flex-direction:column;gap:6px;font-size:13px;margin-bottom:10px}
-.modal input,.modal select{width:100%;padding:8px;border:1px solid #e5e7eb;border-radius:6px}
-.modal button{width:auto;padding:8px 12px}
-.modal .cancel-btn{background:#ef4444;color:#fff}
-.modal .create-btn{background:#2563eb;color:#fff}
+.modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.4);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:60
+}
+.modal{
+    background:#fff;
+    padding:16px;
+    border-radius:8px;
+    min-width:320px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.2)
+}
+.modal h3{
+    margin:0 0 8px 0
+}
+.modal label{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    font-size:13px;
+    margin-bottom:10px
+}
+.modal input,.modal select{
+    width:100%;
+    padding:8px;
+    border:1px solid #e5e7eb;
+    border-radius:6px
+}
+.modal button{
+    width:auto;
+    padding:8px 12px;
+    transition:box-shadow 0.16s ease, transform 0.08s ease, filter 0.08s ease, background-color 0.12s ease
+}
+.modal .cancel-btn{
+    background:#ef4444;
+    color:#fff
+}
+.modal .create-btn{
+    background:#2563eb;
+    color:#fff
+}
+.modal .cancel-btn:hover{
+    box-shadow:0 6px 16px rgba(239, 68, 68, 0.22)
+}
+.modal .cancel-btn:active{
+    background:#dc2626;
+    filter:brightness(0.96);
+    transform:translateY(1px)
+}
+.modal .create-btn:hover{
+    box-shadow:0 6px 16px rgba(37, 99, 235, 0.22)
+}
+.modal .create-btn:active{
+    background:#1d4ed8;
+    filter:brightness(0.96);
+    transform:translateY(1px)
+}
 
 /* Filters and totals */
 .filters{display:flex;gap:12px;align-items:center}
 .filters label{display:flex;flex-direction:column;font-size:12px}
 .filters input{padding:6px;border-radius:6px;border:1px solid #e5e7eb}
-.filters button{padding:6px 10px;border-radius:6px;border:none;background:#2563eb;color:#fff}
-.totals{font-size:14px}
-.total-income{color:#16a34a;font-weight:600}
-.total-expense{color:#dc2626;font-weight:600}
+.filters button{
+    padding:6px 10px;
+    border-radius:6px;
+    border:none;
+    background:#2563eb;
+    color:#fff;
+    transition:box-shadow 0.16s ease, transform 0.08s ease, filter 0.08s ease, background-color 0.12s ease
+}
+.filters button:hover{
+    box-shadow:0 6px 16px rgba(37, 99, 235, 0.22)
+}
+.filters button:active{
+    background:#1d4ed8;
+    filter:brightness(0.96);
+    transform:translateY(1px)
+}
+.totals{
+    font-size:14px
+}
+.total-income{
+    color:#16a34a;
+    font-weight:600
+}
+.total-expense{
+    color:#dc2626;
+    font-weight:600
+}
 .signout-link{cursor:pointer;color:#2563eb;text-decoration:underline}
 
 

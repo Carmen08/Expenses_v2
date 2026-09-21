@@ -13,7 +13,9 @@ app.get('/health', (req, res) => {
 })
 
 const expenses = require('./routes/expenses')
+const classifiers = require('./routes/classifiers')
 app.use('/api/expenses', expenses)
+app.use('/api/classifiers', classifiers)
 
 const port = process.env.PORT || 4000
 app.listen(port, '0.0.0.0', () => {

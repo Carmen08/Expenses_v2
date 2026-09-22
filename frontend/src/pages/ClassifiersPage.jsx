@@ -148,6 +148,42 @@ export default function ClassifiersPage(){
     }
   }
 
+  async function handleBulkDelete(){
+    if(selectedIds.length === 0) return
+    if(!confirm(`Delete ${selectedIds.length} selected classifier(s)?`)) return
+
+    try{
+      const currentUser = auth.currentUser
+      if(!currentUser){ navigate('/login'); return }
+      const token = await currentUser.getIdToken()
+
+      const results = await Promise.all(selectedIds.map(async id => {
+        const res = await fetch(`/api/classifiers/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        return { id, ok: res.ok, status: res.status }
+      }))
+
+      if(results.some(r => r.status === 401)){
+        navigate('/login')
+        return
+      }
+
+      const failed = results.filter(r => !r.ok)
+      if(failed.length){
+        alert(`Failed to delete ${failed.length} classifier(s)`)
+      }
+
+      const deletedIds = results.filter(r => r.ok).map(r => r.id)
+      setItems(prev => prev.filter(it => !deletedIds.includes(it._id || it.id)))
+      setSelectedIds([])
+    }catch(err){
+      console.error('Bulk delete classifiers failed', err)
+      alert('Bulk delete classifiers failed')
+    }
+  }
+
   function openCreate(){
     setEditId(null)
     setDescription('')
@@ -185,10 +221,7 @@ export default function ClassifiersPage(){
           }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 21v-3.75L14.81 5.44a2 2 0 012.83 0l1.92 1.92a2 2 0 010 2.83L7.75 21H3z" stroke="#333" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
-          <button title="Delete selected" className="icon-button" disabled={selectedIds.length === 0} onClick={() => {
-            if(selectedIds.length === 0) return
-            selectedIds.forEach(id => handleDelete(id))
-          }}>
+          <button title="Delete selected" className="icon-button" disabled={selectedIds.length === 0} onClick={handleBulkDelete}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M8 6v12a2 2 0 002 2h4a2 2 0 002-2V6M10 6V4a2 2 0 012-2h0a2 2 0 012 2v2" stroke="#b00" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
         </div>

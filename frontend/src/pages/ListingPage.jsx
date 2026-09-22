@@ -155,7 +155,7 @@ export default function ListingPage(){
 
   async function handleBulkDelete(){
     if(selectedIds.length === 0) return
-    if(!confirm(`Delete ${selectedIds.length} selected item(s)?`)) return
+    if(!confirm(`Delete ${selectedIds.length} selected expense(s)?`)) return
     try{
       const currentUser = auth.currentUser
       if(!currentUser){ navigate('/login'); return }
@@ -167,7 +167,7 @@ export default function ListingPage(){
       // if any unauthorized, redirect
       if(results.some(r => r.status === 401)) { navigate('/login'); return }
       const failed = results.filter(r => !r.ok)
-      if(failed.length){ alert(`Failed to delete ${failed.length} item(s)`)}
+      if(failed.length){ alert(`Failed to delete ${failed.length} expense(s)`)}
       // remove successful
       const successIds = results.filter(r => r.ok).map(r=>r.id)
       setItems(prev => prev.filter(it => !successIds.includes(it._id || it.id)))

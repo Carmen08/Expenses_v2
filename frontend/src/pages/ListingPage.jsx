@@ -357,17 +357,17 @@ export default function ListingPage(){
   }, { income: 0, expense: 0 })
 
   return (
-    <div style={{padding:24}}>
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between', marginBottom: 12}}>
-        <h1 style={{margin:0}}>Expenses</h1>
+    <div className="listing-page">
+      <div className="listing-header">
+        <h1>Expenses</h1>
       </div>
 
-      <div className="filters" style={{marginTop:12,marginBottom:12}}>
-        <label>From <input type="date" value={filterStartInput} onChange={e=>setFilterStartInput(e.target.value)} /></label>
-        <label>To <input type="date" value={filterEndInput} onChange={e=>setFilterEndInput(e.target.value)} /></label>
-        <label>Text filter <input placeholder="Search concept or classifier" value={filterTextInput} onChange={e=>{ setFilterTextInput(e.target.value); setFilterText(e.target.value); }} /></label>
-          <div style={{display:'flex',gap:8,alignItems:'center'}}>
-          <button type="button" onClick={() => {
+      <div className="listing-filters">
+        <label className="filter-group">From <input type="date" value={filterStartInput} onChange={e=>setFilterStartInput(e.target.value)} /></label>
+        <label className="filter-group">To <input type="date" value={filterEndInput} onChange={e=>setFilterEndInput(e.target.value)} /></label>
+        <label className="filter-group">Text filter <input placeholder="Search concept or classifier" value={filterTextInput} onChange={e=>{ setFilterTextInput(e.target.value); setFilterText(e.target.value); }} /></label>
+        <div className="filter-actions">
+          <button type="button" className="filter-button" onClick={() => {
             const s = filterStartInput
             let e = filterEndInput
             if(s && e && e < s){
@@ -377,24 +377,24 @@ export default function ListingPage(){
             setFilterStart(s)
             setFilterEnd(e)
           }}>Apply</button>
-          <button type="button" onClick={() => { setFilterStart(monthRange.start); setFilterEnd(monthRange.end); setFilterText(''); setFilterStartInput(monthRange.start); setFilterEndInput(monthRange.end); setFilterTextInput('') }}>Reset</button>
+          <button type="button" className="secondary-button" onClick={() => { setFilterStart(monthRange.start); setFilterEnd(monthRange.end); setFilterText(''); setFilterStartInput(monthRange.start); setFilterEndInput(monthRange.end); setFilterTextInput('') }}>Reset</button>
         </div>
-        <div className="totals" style={{marginLeft:'auto',display:'flex',gap:12,alignItems:'center'}}>
-          <div className="total-income" style={{display:'flex',alignItems:'center',lineHeight:1}}>Income: {totals.income.toFixed(2)} €</div>
-          <div className="total-expense" style={{display:'flex',alignItems:'center',lineHeight:1}}>Expense: {totals.expense.toFixed(2)} €</div>
-          <div style={{display:'flex',gap:8,alignItems:'center',lineHeight:1}}>
-            <button title="Add expense" onClick={openCreate} style={{background:'transparent',border:'none',cursor:'pointer',padding:0,margin:0,width:'auto',height:'18px',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'none'}}>
+        <div className="totals-panel">
+          <div className="total-income">Income: {totals.income.toFixed(2)} €</div>
+          <div className="total-expense">Expense: {totals.expense.toFixed(2)} €</div>
+          <div className="icon-actions">
+            <button title="Add expense" className="icon-button" onClick={openCreate}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke="#005bee" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
-            <button title="Edit selected" disabled={selectedIds.length !== 1} onClick={() => {
+            <button title="Edit selected" className="icon-button" disabled={selectedIds.length !== 1} onClick={() => {
               if(selectedIds.length !== 1) return
               const id = selectedIds[0]
               const it = items.find(x => (x._id||x.id) === id)
               if(it) openEdit(it)
-            }} style={{background:'transparent',border:'none',cursor: selectedIds.length===1 ? 'pointer' : 'not-allowed',padding:0,margin:0,width:'auto',height:'18px',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'none'}}>
+            }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 21v-3.75L14.81 5.44a2 2 0 012.83 0l1.92 1.92a2 2 0 010 2.83L7.75 21H3z" stroke="#333" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
-            <button title="Delete selected" disabled={selectedIds.length===0} onClick={handleBulkDelete} style={{background:'transparent',border:'none',cursor: selectedIds.length>0 ? 'pointer' : 'not-allowed',padding:0,margin:0,width:'auto',height:'18px',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'none'}}>
+            <button title="Delete selected" className="icon-button" disabled={selectedIds.length===0} onClick={handleBulkDelete}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M8 6v12a2 2 0 002 2h4a2 2 0 002-2V6M10 6V4a2 2 0 012-2h0a2 2 0 012 2v2" stroke="#b00" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </button>
           </div>
@@ -402,12 +402,11 @@ export default function ListingPage(){
       </div>
       {loading ? <p>Loading...</p> : (
         <div>
-          {/* Modal */}
           {showModal && (
             <div className="modal-overlay" onMouseDown={handleCancel}>
               <div className="modal" onMouseDown={e=>e.stopPropagation()}>
                 <h3>Create Expense</h3>
-                <form onSubmit={handleCreate} style={{display:'grid',gap:8}}>
+                <form className="listing-form" onSubmit={handleCreate}>
                   <label>Concept
                     <input value={concept} onChange={e=>setConcept(e.target.value)} />
                   </label>
@@ -418,8 +417,8 @@ export default function ListingPage(){
                     <input type="date" value={date} onChange={e=>setDate(e.target.value)} />
                   </label>
                   <label>Classifier
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <div style={{ position: 'relative', flex: 1 }}>
+                    <div className="classifier-picker">
+                      <div className="classifier-input-shell">
                         <input
                           value={classifierQuery}
                           onFocus={() => setShowClassifierMenu(true)}
@@ -429,23 +428,22 @@ export default function ListingPage(){
                             if(!e.target.value.trim()) setSelectedClassifierId('')
                           }}
                           placeholder="Search classifier"
-                          style={{ color: '#111827' }}
                         />
                         {showClassifierMenu && (
-                          <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, maxHeight: 180, overflowY: 'auto', background: '#fff', border: '1px solid #d1d5db', borderRadius: 8, zIndex: 4, boxShadow: '0 8px 18px rgba(15, 23, 42, 0.12)' }}>
+                          <div className="classifier-dropdown">
                             {filteredClassifiers.length === 0 ? (
-                              <div style={{ padding: '8px 10px', color: '#374151' }}>No classifiers found</div>
+                              <div className="classifier-empty">No classifiers found</div>
                             ) : filteredClassifiers.map(item => (
                               <button
                                 key={item._id || item.id}
                                 type="button"
+                                className="classifier-option"
                                 onMouseDown={e => e.preventDefault()}
                                 onClick={() => {
                                   setSelectedClassifierId(item._id || item.id)
                                   setClassifierQuery(item.description || '')
                                   setShowClassifierMenu(false)
                                 }}
-                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#111827' }}
                               >
                                 {item.description || ''}
                               </button>
@@ -453,7 +451,7 @@ export default function ListingPage(){
                           </div>
                         )}
                       </div>
-                      <button type="button" title="Add classifier" onClick={() => setShowClassifierModal(true)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', width: 'auto', margin: 0, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <button type="button" title="Add classifier" className="icon-button" onClick={() => setShowClassifierModal(true)}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke="#005bee" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       </button>
                     </div>
@@ -464,7 +462,7 @@ export default function ListingPage(){
                       <option value="income">Income</option>
                     </select>
                   </label>
-                  <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:8}}>
+                  <div className="modal-inline-actions">
                     <button type="button" className="cancel-btn" onClick={handleCancel}>Cancel</button>
                     <button type="submit" className="create-btn">Create</button>
                   </div>
@@ -477,16 +475,15 @@ export default function ListingPage(){
             <div className="modal-overlay" onMouseDown={() => setShowClassifierModal(false)}>
               <div className="modal" onMouseDown={e => e.stopPropagation()}>
                 <h3>New classifier</h3>
-                <form onSubmit={handleClassifierQuickCreate} style={{ display: 'grid', gap: 8 }}>
+                <form className="listing-form" onSubmit={handleClassifierQuickCreate}>
                   <label>Description
                     <input
                       value={newClassifierDescription}
                       onChange={e => setNewClassifierDescription(e.target.value)}
                       placeholder="e.g. Food"
-                      style={{ color: '#111827' }}
                     />
                   </label>
-                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
+                  <div className="modal-inline-actions">
                     <button type="button" className="cancel-btn" onClick={() => setShowClassifierModal(false)}>Cancel</button>
                     <button type="submit" className="create-btn">Create</button>
                   </div>
@@ -498,7 +495,7 @@ export default function ListingPage(){
           <table className="table-reset" id="tabla">
             <thead className="grid-header">
               <tr>
-                <th style={{width:36}}>
+                <th className="selection-cell">
                   <input
                     type="checkbox"
                     checked={filteredItems.length>0 && selectedIds.length === filteredItems.length}
@@ -515,7 +512,6 @@ export default function ListingPage(){
                 <th className="grid-lbl concept">Concept</th>
                 <th className="grid-lbl amount">Amount</th>
                 <th className="grid-lbl classifier">Classifier</th>
-                
               </tr>
             </thead>
             <tbody id="table-body">
@@ -547,7 +543,6 @@ export default function ListingPage(){
               ))}
             </tbody>
           </table>
-          
         </div>
       )}
     </div>

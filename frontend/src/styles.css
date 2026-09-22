@@ -53,6 +53,26 @@ button:active{
     filter:brightness(0.96);
     transform:translateY(1px)
 }
+.icon-button{
+    background:transparent;
+    border:none;
+    cursor:pointer;
+    padding:0;
+    margin:0;
+    width:auto;
+    height:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:none;
+}
+.icon-button:disabled{
+    cursor:not-allowed;
+    opacity:0.5;
+}
+.icon-button svg{
+    display:block;
+}
 .error{
     background:#fee2e2;
     color:#b91c1c;
@@ -180,5 +200,14 @@ button:active{
     font-weight:600
 }
 .signout-link{cursor:pointer;color:#2563eb;text-decoration:underline}
+
+ .page-loading{padding:24px}
+.auth-link-line{margin-top:12px;font-size:14px;text-align:center}
+
+@media (max-width: 760px){
+    .listing-filters{align-items:flex-start;flex-direction:column}
+    .totals-panel{margin-left:0;width:100%;justify-content:flex-start;flex-wrap:wrap}
+    .filter-actions{width:100%}
+}
 
 

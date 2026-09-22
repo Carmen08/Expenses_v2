@@ -44,7 +44,7 @@ export default function SignUpPage(){
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
         </label>
         <button type="submit" disabled={loading}>{loading ? 'Creating...' : 'Create account'}</button>
-        <div style={{marginTop:12,fontSize:14,textAlign:'center'}}>
+        <div className="auth-link-line">
           Already have an account? <Link to="/login">Log in</Link>
         </div>
       </form>

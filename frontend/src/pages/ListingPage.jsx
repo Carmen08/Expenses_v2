@@ -94,6 +94,24 @@ export default function ListingPage(){
     return () => { mounted = false }
   }, [navigate])
 
+  useEffect(() => {
+    function onKeyDown(event){
+      if(event.key !== 'Escape') return
+
+      if(showClassifierModal){
+        setShowClassifierModal(false)
+        return
+      }
+
+      if(showModal){
+        handleCancel()
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [showModal, showClassifierModal])
+
   async function handleSignOut(){
     try{
       await signOut(auth)

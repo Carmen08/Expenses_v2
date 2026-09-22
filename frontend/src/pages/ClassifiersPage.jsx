@@ -58,6 +58,18 @@ export default function ClassifiersPage(){
     return () => { mounted = false }
   }, [navigate])
 
+  useEffect(() => {
+    function onKeyDown(event){
+      if(event.key !== 'Escape') return
+      if(showModal){
+        handleCancel()
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [showModal])
+
   async function handleSubmit(e){
     e.preventDefault()
     const formatted = formatClassifierText(description)

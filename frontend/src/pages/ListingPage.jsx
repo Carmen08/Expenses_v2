@@ -100,6 +100,7 @@ export default function ListingPage(){
 
       if(showClassifierModal){
         setShowClassifierModal(false)
+        setSelectedIds([])
         return
       }
 
@@ -276,6 +277,7 @@ export default function ListingPage(){
     setIsExpense(true)
     setShowModal(false)
     setEditId(null)
+    setSelectedIds([])
   }
 
   function openEdit(it){

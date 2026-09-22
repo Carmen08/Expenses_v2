@@ -200,6 +200,7 @@ export default function ClassifiersPage(){
     setEditId(null)
     setDescription('')
     setShowModal(false)
+    setSelectedIds([])
   }
 
   return (

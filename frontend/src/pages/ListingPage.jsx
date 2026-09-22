@@ -516,7 +516,13 @@ export default function ListingPage(){
             </thead>
             <tbody id="table-body">
               {filteredItems.map(it => (
-                <tr key={it._id || it.id}>
+                <tr
+                  key={it._id || it.id}
+                  onClick={(e) => {
+                    if(e.target.closest('input[type="checkbox"]')) return
+                    openEdit(it)
+                  }}
+                >
                   <td onClick={(e) => {
                     e.stopPropagation()
                     toggleRowSelection(it)

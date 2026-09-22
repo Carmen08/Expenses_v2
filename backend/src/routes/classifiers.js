@@ -134,6 +134,18 @@ router.delete('/:id', verifyToken, async (req, res) => {
     if(!id) return res.status(400).json({ error: 'Missing id parameter' })
     if(!ObjectId.isValid(id)) return res.status(400).json({ error: 'Invalid id' })
 
+    const expensesCol = await getCollection('expenses')
+    const referencedExpense = await expensesCol.findOne({
+      userId: req.user.uid,
+      classifierId: { $in: [id, new ObjectId(id).toString(), new ObjectId(id)] }
+    })
+
+    if(referencedExpense) {
+      return res.status(409).json({
+        error: 'This classifier is being used by one or more expenses and cannot be deleted.'
+      })
+    }
+
     const col = await getCollection('classifiers')
     const filter = { _id: new ObjectId(id), userId: req.user.uid }
     const result = await col.findOneAndDelete(filter)

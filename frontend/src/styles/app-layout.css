@@ -1,0 +1,10 @@
+.app-layout{min-height:100vh;background:#f3f4f6}
+.app-layout__backdrop{position:fixed;inset:0;background:rgba(15,23,42,0.2);z-index:20}
+.app-layout__topbar{display:flex;align-items:center;padding:14px 24px 0}
+.app-layout__menu-button{width:36px;height:36px;margin:0;padding:0;border-radius:8px;background:#f3f4f6;color:#1f2937;display:flex;align-items:center;justify-content:center;box-shadow:none;border:1px solid #e5e7eb;cursor:pointer}
+.app-layout__menu-button:hover{box-shadow:0 6px 16px rgba(15,23,42,0.08)}
+.app-layout__menu-icon{display:flex;flex-direction:column;gap:4px;width:16px}
+.app-layout__menu-icon span{display:block;height:2px;border-radius:99px;background:#1f2937}
+.app-layout__drawer{position:fixed;top:0;left:0;bottom:0;width:220px;background:#ffffff;border-right:1px solid #e5e7eb;box-shadow:0 10px 30px rgba(0,0,0,0.12);z-index:30;padding:16px 12px;display:flex;flex-direction:column;gap:8px}
+.app-layout__nav-button{width:auto;margin:0;padding:0;background:transparent;color:#111827;border:none;border-radius:0;box-shadow:none;font-size:20px;font-weight:400;line-height:1.4;text-align:left;text-transform:capitalize;text-decoration:none;display:inline-block;cursor:pointer}
+.app-layout__nav-button:hover,.app-layout__nav-button:focus-visible{text-decoration:underline}

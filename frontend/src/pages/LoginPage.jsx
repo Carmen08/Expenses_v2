@@ -46,7 +46,7 @@ export default function LoginPage(){
           <input type="password" value={password} onChange={e => setPassword(e.target.value)} />
         </label>
         <button type="submit" disabled={loading}>{loading ? 'Logging...' : 'Login'}</button>
-        <div style={{marginTop:12,fontSize:14,textAlign:'center'}}>
+        <div className="auth-link-line">
           No account? <Link to="/signup">Sign up</Link>
         </div>
       </form>

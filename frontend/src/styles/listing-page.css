@@ -1,0 +1,29 @@
+.listing-page{padding:24px}
+.listing-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.listing-header h1{margin:0}
+.listing-filters{display:flex;gap:12px;align-items:center;margin-top:12px;margin-bottom:12px;flex-wrap:wrap}
+.filter-group{display:flex;flex-direction:column;font-size:12px;gap:6px}
+.filter-group input{padding:6px;border-radius:6px;border:1px solid #e5e7eb}
+.filter-actions{display:flex;gap:8px;align-items:center}
+.filter-button,.secondary-button{width:auto;padding:6px 10px;border-radius:6px;border:none;background:#2563eb;color:#fff;transition:box-shadow 0.16s ease, transform 0.08s ease, filter 0.08s ease, background-color 0.12s ease}
+.filter-button:hover,.secondary-button:hover{box-shadow:0 6px 16px rgba(37, 99, 235, 0.22)}
+.filter-button:active,.secondary-button:active{background:#1d4ed8;filter:brightness(0.96);transform:translateY(1px)}
+.secondary-button{background:#e5e7eb;color:#111827}
+.totals-panel{margin-left:auto;display:flex;gap:12px;align-items:center}
+.total-income{color:#16a34a;font-weight:600;display:flex;align-items:center;line-height:1}
+.total-expense{color:#dc2626;font-weight:600;display:flex;align-items:center;line-height:1}
+.icon-actions{display:flex;gap:8px;align-items:center;line-height:1}
+.listing-form{display:grid;gap:8px}
+.classifier-picker{display:flex;gap:8px;align-items:center}
+.classifier-input-shell{position:relative;flex:1}
+.classifier-input-shell input{color:#111827}
+.classifier-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;max-height:180px;overflow-y:auto;background:#fff;border:1px solid #d1d5db;border-radius:8px;z-index:4;box-shadow:0 8px 18px rgba(15, 23, 42, 0.12)}
+.classifier-option{display:block;width:100%;text-align:left;padding:8px 10px;border:none;background:transparent;cursor:pointer;color:#111827}
+.classifier-option:hover{background:#f3f4f6}
+.classifier-empty{padding:8px 10px;color:#374151}
+
+@media (max-width: 760px){
+    .listing-filters{align-items:flex-start;flex-direction:column}
+    .totals-panel{margin-left:0;width:100%;justify-content:flex-start;flex-wrap:wrap}
+    .filter-actions{width:100%}
+}

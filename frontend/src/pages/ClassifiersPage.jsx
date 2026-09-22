@@ -269,7 +269,13 @@ export default function ClassifiersPage(){
           </thead>
           <tbody>
             {items.map(it => (
-              <tr key={it._id || it.id}>
+              // <tr key={it._id || it.id}>
+              <tr
+                key={it._id || it.id}
+                onClick={(e) => {
+                  if(e.target.closest('input[type="checkbox"]')) return
+                  openEdit(it)
+                }}>
                 <td onClick={(e) => {
                   e.stopPropagation()
                   const id = it._id || it.id

@@ -282,7 +282,6 @@ export default function ClassifiersPage(){
           </thead>
           <tbody>
             {items.map(it => (
-              // <tr key={it._id || it.id}>
               <tr
                 key={it._id || it.id}
                 onClick={(e) => {

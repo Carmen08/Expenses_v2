@@ -3,6 +3,19 @@ import { signOut } from 'firebase/auth'
 import auth from '../firebase'
 import { useNavigate } from 'react-router-dom'
 
+function formatClassifierText(value){
+  if(typeof value !== 'string') return ''
+
+  const normalized = value.replace(/\s+/g, ' ').trim()
+  if(!normalized) return ''
+
+  return normalized
+    .split(' ')
+    .filter(Boolean)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+}
+
 export default function ListingPage(){
   const navigate = useNavigate()
   const [items, setItems] = useState([])
@@ -33,7 +46,12 @@ export default function ListingPage(){
   const [concept, setConcept] = useState('')
   const [amount, setAmount] = useState('')
   const [date, setDate] = useState('')
-  const [classifierDesc, setClassifierDesc] = useState('')
+  const [classifierQuery, setClassifierQuery] = useState('')
+  const [selectedClassifierId, setSelectedClassifierId] = useState('')
+  const [classifiers, setClassifiers] = useState([])
+  const [showClassifierMenu, setShowClassifierMenu] = useState(false)
+  const [showClassifierModal, setShowClassifierModal] = useState(false)
+  const [newClassifierDescription, setNewClassifierDescription] = useState('')
   const [isExpense, setIsExpense] = useState(true)
   const [editId, setEditId] = useState(null)
   const [selectedIds, setSelectedIds] = useState([])
@@ -48,20 +66,24 @@ export default function ListingPage(){
           return
         }
         const token = await currentUser.getIdToken()
-        // const res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/api/expenses`, {
-        const res = await fetch(`/api/expenses`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        })
-        if(res.status === 401){
-          // token invalid or expired
+
+        const [expensesRes, classifiersRes] = await Promise.all([
+          fetch('/api/expenses', { headers: { Authorization: `Bearer ${token}` } }),
+          fetch('/api/classifiers', { headers: { Authorization: `Bearer ${token}` } })
+        ])
+
+        if(expensesRes.status === 401 || classifiersRes.status === 401){
           navigate('/login')
           return
         }
-        const data = await res.json()
-        // backend may return { listings: [...] } or { expenses: [...] }
-        if(mounted) setItems(data.expenses || [])
+
+        const expensesData = await expensesRes.json()
+        const classifiersData = await classifiersRes.json()
+
+        if(mounted){
+          setItems(expensesData.expenses || [])
+          setClassifiers((classifiersData.classifiers || []).sort((a, b) => (a.description || '').localeCompare(b.description || '')))
+        }
       }catch(err){
         console.error('Failed to fetch expenses', err)
       }finally{
@@ -137,8 +159,9 @@ export default function ListingPage(){
 
   async function handleCreate(e){
     e.preventDefault()
-    // basic client-side validation
     if(!concept || !amount) return alert('Concept and amount are required')
+    if(!selectedClassifierId) return alert('Classifier is required')
+
     const num = Number(amount)
     if(Number.isNaN(num)) return alert('Amount must be a number')
 
@@ -150,19 +173,17 @@ export default function ListingPage(){
         concept: concept.trim(),
         amount: num,
         date: date || new Date().toISOString(),
-        classifier: { description: classifierDesc || '' },
+        classifierId: selectedClassifierId,
         isExpense: !!isExpense
       }
       let res
       if(editId){
-        // res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/api/expenses/${editId}`, {
         res = await fetch(`/api/expenses/${editId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload)
         })
       }else{
-        // res = await fetch(`${import.meta.env.VITE_API_BASE || 'http://localhost:4000'}/api/expenses`, {
         res = await fetch(`/api/expenses`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -181,8 +202,7 @@ export default function ListingPage(){
         if(created && created._id && created._id.toString) created._id = created._id.toString()
         setItems(prev => [created, ...prev])
       }
-      // reset form and close modal
-      setConcept(''); setAmount(''); setDate(''); setClassifierDesc(''); setIsExpense(true)
+      setConcept(''); setAmount(''); setDate(''); setClassifierQuery(''); setSelectedClassifierId(''); setShowClassifierMenu(false); setIsExpense(true)
       setEditId(null)
       setShowModal(false)
     }catch(err){ console.error('Create failed', err); alert('Create failed') }
@@ -192,22 +212,65 @@ export default function ListingPage(){
     return formatLocalDate(new Date())
   }
 
+  async function handleClassifierQuickCreate(e){
+    e.preventDefault()
+    const formatted = formatClassifierText(newClassifierDescription)
+    if(!formatted) return alert('Classifier description is required')
+
+    try{
+      const currentUser = auth.currentUser
+      if(!currentUser){ navigate('/login'); return }
+      const token = await currentUser.getIdToken()
+      const res = await fetch('/api/classifiers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ description: formatted })
+      })
+
+      if(res.status === 401){ navigate('/login'); return }
+      if(!res.ok){
+        const err = await res.json().catch(() => ({ error: 'Unknown' }))
+        alert('Create classifier failed: ' + (err.error || res.statusText))
+        return
+      }
+
+      const data = await res.json()
+      const created = data.classifier
+      const nextItem = { ...(created || {}), description: created?.description || formatted }
+      setClassifiers(prev => [...prev, nextItem].sort((a, b) => (a.description || '').localeCompare(b.description || '')))
+      setSelectedClassifierId(nextItem._id || nextItem.id)
+      setClassifierQuery(nextItem.description || '')
+      setNewClassifierDescription('')
+      setShowClassifierModal(false)
+    }catch(err){
+      console.error('Create classifier failed', err)
+      alert('Create classifier failed')
+    }
+  }
+
   function handleCancel(){
     setConcept('')
     setAmount('')
     setDate('')
-    setClassifierDesc('')
+    setClassifierQuery('')
+    setSelectedClassifierId('')
+    setShowClassifierMenu(false)
     setIsExpense(true)
     setShowModal(false)
     setEditId(null)
   }
 
   function openEdit(it){
+    const classifierId = it.classifierId || (it.classifier && (it.classifier._id || it.classifier.id)) || ''
+    const classifierName = classifiers.find(item => (item._id || item.id) === classifierId)?.description || it.classifier?.description || ''
+
     setEditId(it._id || it.id)
     setConcept(it.concept || '')
     setAmount(it.amount != null ? String(it.amount) : '')
     setDate(it.date ? formatLocalDate(new Date(it.date)) : '')
-    setClassifierDesc(it.classifier?.description || '')
+    setSelectedClassifierId(classifierId)
+    setClassifierQuery(classifierName)
+    setShowClassifierMenu(false)
     setIsExpense(!!it.isExpense)
     setShowModal(true)
   }
@@ -217,7 +280,9 @@ export default function ListingPage(){
     setConcept('')
     setAmount('')
     setDate(getToday())
-    setClassifierDesc('')
+    setSelectedClassifierId('')
+    setClassifierQuery('')
+    setShowClassifierMenu(false)
     setIsExpense(true)
     setShowModal(true)
   }
@@ -234,6 +299,16 @@ export default function ListingPage(){
     return new Date(y, m-1, d, 0,0,0,0)
   }
 
+  const classifierNameById = Object.fromEntries(
+    classifiers.map(item => [(item._id || item.id), item.description || ''])
+  )
+
+  const filteredClassifiers = classifiers.filter(item => {
+    const query = classifierQuery.trim().toLowerCase()
+    if(!query) return true
+    return (item.description || '').toLowerCase().includes(query)
+  })
+
   const filteredItems = items.filter(it => {
     try{
       const d = it.date ? new Date(it.date) : null
@@ -247,7 +322,8 @@ export default function ListingPage(){
       }
       if(filterText){
         const text = filterText.toLowerCase()
-        const desc = (it.classifier && it.classifier.description) ? it.classifier.description.toLowerCase() : ''
+        const classifierId = it.classifierId || (it.classifier && (it.classifier._id || it.classifier.id)) || ''
+        const desc = (classifierId ? (classifierNameById[classifierId] || '') : (it.classifier && it.classifier.description) || '').toLowerCase()
         const concept = (it.concept || '').toLowerCase()
         if(!desc.includes(text) && !concept.includes(text)) return false
       }
@@ -324,7 +400,45 @@ export default function ListingPage(){
                     <input type="date" value={date} onChange={e=>setDate(e.target.value)} />
                   </label>
                   <label>Classifier
-                    <input value={classifierDesc} onChange={e=>setClassifierDesc(e.target.value)} />
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <div style={{ position: 'relative', flex: 1 }}>
+                        <input
+                          value={classifierQuery}
+                          onFocus={() => setShowClassifierMenu(true)}
+                          onChange={e => {
+                            setClassifierQuery(e.target.value)
+                            setShowClassifierMenu(true)
+                            if(!e.target.value.trim()) setSelectedClassifierId('')
+                          }}
+                          placeholder="Search classifier"
+                          style={{ color: '#111827' }}
+                        />
+                        {showClassifierMenu && (
+                          <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, maxHeight: 180, overflowY: 'auto', background: '#fff', border: '1px solid #d1d5db', borderRadius: 8, zIndex: 4, boxShadow: '0 8px 18px rgba(15, 23, 42, 0.12)' }}>
+                            {filteredClassifiers.length === 0 ? (
+                              <div style={{ padding: '8px 10px', color: '#374151' }}>No classifiers found</div>
+                            ) : filteredClassifiers.map(item => (
+                              <button
+                                key={item._id || item.id}
+                                type="button"
+                                onMouseDown={e => e.preventDefault()}
+                                onClick={() => {
+                                  setSelectedClassifierId(item._id || item.id)
+                                  setClassifierQuery(item.description || '')
+                                  setShowClassifierMenu(false)
+                                }}
+                                style={{ display: 'block', width: '100%', textAlign: 'left', padding: '8px 10px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#111827' }}
+                              >
+                                {item.description || ''}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <button type="button" title="Add classifier" onClick={() => setShowClassifierModal(true)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', width: 'auto', margin: 0, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke="#005bee" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </button>
+                    </div>
                   </label>
                   <label>Type
                     <select value={isExpense? 'expense' : 'income'} onChange={e=>setIsExpense(e.target.value==='expense')}>
@@ -334,6 +448,28 @@ export default function ListingPage(){
                   </label>
                   <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:8}}>
                     <button type="button" className="cancel-btn" onClick={handleCancel}>Cancel</button>
+                    <button type="submit" className="create-btn">Create</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {showClassifierModal && (
+            <div className="modal-overlay" onMouseDown={() => setShowClassifierModal(false)}>
+              <div className="modal" onMouseDown={e => e.stopPropagation()}>
+                <h3>New classifier</h3>
+                <form onSubmit={handleClassifierQuickCreate} style={{ display: 'grid', gap: 8 }}>
+                  <label>Description
+                    <input
+                      value={newClassifierDescription}
+                      onChange={e => setNewClassifierDescription(e.target.value)}
+                      placeholder="e.g. Food"
+                      style={{ color: '#111827' }}
+                    />
+                  </label>
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
+                    <button type="button" className="cancel-btn" onClick={() => setShowClassifierModal(false)}>Cancel</button>
                     <button type="submit" className="create-btn">Create</button>
                   </div>
                 </form>
@@ -388,7 +524,7 @@ export default function ListingPage(){
                   <td>{it.date ? new Date(it.date).toLocaleDateString() : ''}</td>
                   <td>{it.concept || it.title || ''}</td>
                   <td>{typeof it.amount === 'number' ? `${it.amount.toFixed(2)} €` : it.amount}</td>
-                  <td>{it.classifier?.description || ''}</td>
+                  <td>{(it.classifierId && classifierNameById[it.classifierId]) || (it.classifier && it.classifier.description) || ''}</td>
                 </tr>
               ))}
             </tbody>

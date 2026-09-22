@@ -136,6 +136,10 @@ export default function ClassifiersPage(){
       if(res.status === 401){ navigate('/login'); return }
       if(!res.ok){
         const err = await res.json().catch(() => ({ error: 'Unknown' }))
+        if(res.status === 409){
+          alert(err.error || 'This classifier is being used by one or more expenses and cannot be deleted.')
+          return
+        }
         alert('Failed to delete: ' + (err.error || res.statusText))
         return
       }
@@ -170,9 +174,17 @@ export default function ClassifiersPage(){
         return
       }
 
+      const conflict = results.filter(r => r.status === 409)
+      if(conflict.length){
+        alert('One or more selected classifiers are being used by expenses and cannot be deleted.')
+      }
+
       const failed = results.filter(r => !r.ok)
       if(failed.length){
-        alert(`Failed to delete ${failed.length} classifier(s)`)
+        const removable = results.filter(r => r.ok).map(r => r.id)
+        setItems(prev => prev.filter(it => !removable.includes(it._id || it.id)))
+        setSelectedIds([])
+        return
       }
 
       const deletedIds = results.filter(r => r.ok).map(r => r.id)
@@ -270,7 +282,6 @@ export default function ClassifiersPage(){
           </thead>
           <tbody>
             {items.map(it => (
-              // <tr key={it._id || it.id}>
               <tr
                 key={it._id || it.id}
                 onClick={(e) => {

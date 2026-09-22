@@ -1,9 +1,46 @@
-.classifiers-page{padding:24px}
-.classifiers-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.classifiers-header h1{margin:0}
-.classifiers-toolbar{display:flex;justify-content:flex-end;margin-bottom:12px}
-.classifiers-toolbar__actions{display:flex;gap:8px;align-items:center}
-.classifiers-table{width:100%}
-.selection-cell{width:36px}
-.modal-form{display:grid;gap:8px}
-.modal-inline-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.classifiers-page {
+  padding: 24px;
+}
+
+.classifiers-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.classifiers-header h1 {
+  margin: 0;
+}
+
+.classifiers-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.classifiers-toolbar__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.classifiers-table {
+  width: 100%;
+}
+
+.selection-cell {
+  width: 36px;
+}
+
+.modal-form {
+  display: grid;
+  gap: 8px;
+}
+
+.modal-inline-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}

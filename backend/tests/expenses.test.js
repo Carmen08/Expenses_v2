@@ -46,8 +46,8 @@ describe('expenses API (Jest)', () => {
   //POST /api/expenses
   test('POST creates an expense', async () => {
     mockInsertOne.mockResolvedValue({ acknowledged: true, insertedId: 'new-1' })
-    const payload = { concept: 'Lunch', amount: 12.5, classifierId: null, isExpense: true }
-    const res = await request(app).post('/api/expenses').send(payload)
+    const expense = { concept: 'Lunch', amount: 12.5, classifierId: null, isExpense: true }
+    const res = await request(app).post('/api/expenses').send(expense)
     expect(res.status).toBe(201)
     expect(res.body).toHaveProperty('expense')
     expect(mockInsertOne).toHaveBeenCalled()
